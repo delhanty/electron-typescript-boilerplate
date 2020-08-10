@@ -9,7 +9,6 @@ var plumber = require('gulp-plumber');
 var jetpack = require('fs-jetpack');
 var bundle = require('./bundle');
 var utils = require('./utils');
-var runsequence = require('run-sequence');
 // var ts = require('typescript');
 
 var projectDir = jetpack;
@@ -29,7 +28,7 @@ var tsProject = ts.createProject('tsconfig.json');
 gulp.task('ts', function() {
     var tsResult = gulp.src('src/**/*.ts')
         .pipe(tsProject());
- 
+
     return tsResult.js.pipe(gulp.dest('dist'));
 });
 
@@ -40,9 +39,10 @@ gulp.task('less', function () {
         .pipe(gulp.dest(destDir.path('stylesheets')));
 });
 
-gulp.task('environment', function () {
+gulp.task('environment', function (done) {
     var configFile = 'config/env_' + utils.getEnvName() + '.json';
     projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
+    done();
 });
 
 gulp.task('watch', function () {
@@ -56,11 +56,13 @@ gulp.task('watch', function () {
     };
 
     watch('src/**/*.ts', batch(function (events, done) {
-        runsequence('ts', 'bundle', done);
+        gulp.series('ts', 'bundle', done);
     }));
     watch('src/**/*.less', batch(function (events, done) {
         gulp.start('less', beepOnError(done));
     }));
 });
 
-gulp.task('build', runsequence('ts', 'bundle', 'less', 'environment'));
+gulp.task('build', gulp.series('ts', 'bundle', 'less', 'environment', function (done) {
+    done();
+}));
