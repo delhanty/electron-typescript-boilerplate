@@ -45,7 +45,7 @@ gulp.task('environment', function (done) {
     done();
 });
 
-gulp.task('watch', function () {
+gulp.task('watch', function (done) {
     var beepOnError = function (done) {
         return function (err) {
             if (err) {
@@ -61,6 +61,7 @@ gulp.task('watch', function () {
     watch('src/**/*.less', batch(function (events, done) {
         gulp.start('less', beepOnError(done));
     }));
+    done();
 });
 
 gulp.task('build', gulp.series('ts', 'bundle', 'less', 'environment', function (done) {
